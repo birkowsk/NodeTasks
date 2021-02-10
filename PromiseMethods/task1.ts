@@ -36,10 +36,28 @@ function loadPets() {
   });
 }
 
+function loadFail() {
+  new Promise((resolve, reject) =>
+    setTimeout(() => {
+      resolve(10);
+    }, 2000)
+  )
+    .then((num) => {
+      console.log('first then: ', num);
+      return num;
+    })
+    .then((num) => {
+      throw new Error('Oops');
+    })
+    .catch((error) => {
+      console.warn('Błąd', error);
+    });
+}
+
 const promiseAll = (arrayOfPromise) => {
   return new Promise((resolve, reject) => {
     let results: string[] = [];
-    let completed = 0;
+    let completed: number = 0;
 
     arrayOfPromise.forEach((value, index) => {
       Promise.resolve(value)
@@ -47,7 +65,7 @@ const promiseAll = (arrayOfPromise) => {
           results[index] = result;
           completed += 1;
 
-          if (completed == arrayOfPromise.length) {
+          if (completed === arrayOfPromise.length) {
             resolve(results);
           }
         })
@@ -59,7 +77,7 @@ const promiseAll = (arrayOfPromise) => {
 const promiseRace = (arrayOfPromise) => {
   return new Promise((resolve, reject) => {
     let results: string[] = [];
-    let completed = 0;
+    let completed: number = 0;
 
     arrayOfPromise.forEach((value) => {
       Promise.resolve(value)
@@ -67,7 +85,7 @@ const promiseRace = (arrayOfPromise) => {
           results.push(result);
           completed += 1;
 
-          if (completed == 1) {
+          if (completed === 1) {
             resolve(results);
           }
         })
@@ -76,16 +94,45 @@ const promiseRace = (arrayOfPromise) => {
   });
 };
 
-// const promiseLast = (arrayOfPromise) => {
-//   return new Promise((resolve, reject) => {
-//     // ...
-//   });
-// };
+const promiseLast = (arrayOfPromise) => {
+  return new Promise((resolve, reject) => {
+    let results: string[] = [];
+    let completed: number = 0;
 
-// const promiseIgnoreErrors = (arrayOfPromise) => {
-//   return new Promise((resolve, reject) => {
-//     // ...
-//   });
-// };
+    arrayOfPromise.forEach((value) => {
+      Promise.resolve(value)
+        .then((result) => {
+          results.push(result);
+          completed += 1;
 
-export { loadUserData, loadBooks, loadPets, promiseAll, promiseRace };
+          if (completed === arrayOfPromise.length) {
+            const lastIndex = arrayOfPromise.length - 1;
+            resolve(results[lastIndex]);
+          }
+        })
+        .catch((err) => reject(err));
+    });
+  });
+};
+
+const promiseIgnoreErrors = (arrayOfPromise) => {
+  return new Promise((resolve, reject) => {
+    let results: string[] = [];
+    let completed: number = 0;
+
+    arrayOfPromise.forEach((value, index) => {
+      Promise.resolve(value)
+        .then((result) => {
+          results[index] = result;
+          completed += 1;
+
+          if (completed === arrayOfPromise.length) {
+            resolve(results);
+          }
+        })
+        .catch((err) => reject(err));
+    });
+  });
+};
+
+export { loadUserData, loadBooks, loadPets, promiseAll, promiseRace, promiseLast, promiseIgnoreErrors, loadFail };
